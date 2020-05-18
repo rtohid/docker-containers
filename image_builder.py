@@ -69,9 +69,13 @@ RUN useradd -r -m -g {args.user} -G wheel {args.user}
 RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 """
 
+if (args.os == 'ubuntu'):
+    for i in ubuntu_dep:
+        message += f"RUN {package_manager} install -y {i}\n"
+else:
 
-for i in fedora_dep:
-    message += f"RUN {package_manager} install -y {i}\n"
+    for i in fedora_dep:
+        message += f"RUN {package_manager} install -y {i}\n"
 print(message)
 # write the message in a file called Dockerfile
 with open("Dockerfile", 'w') as file:
