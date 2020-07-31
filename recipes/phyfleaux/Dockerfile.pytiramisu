@@ -5,6 +5,13 @@
 
 FROM ubuntu:18.04
 
+ARG CLANG_VER=8
+ARG CC_COMPILER=clang-${CLANG_VER}
+ARG CXX_COMPILER=clang++-${CLANG_VER}
+
+ENV CC ${CC_COMPILER}
+ENV CXX ${CXX_COMPILER}
+
 RUN apt update
 RUN apt install -y sudo
 
@@ -17,16 +24,16 @@ RUN apt install -y zlib1g-dev libz-dev
 RUN apt install -y git vim
 RUN apt install -y wget curl
 RUN apt install -y bash-completion
-RUN apt install -y llvm-8 llvm-8-dev clang-8
+RUN apt install -y llvm-${CLANG_VER} llvm-${CLANG_VER}-dev clang-${CLANG_VER}
 
 WORKDIR /tmp/
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-RUN CC=clang-8 CXX=clang++-8 python3.8 get-pip.py
-RUN CC=clang-8 CXX=clang++-8 python3.8 -m pip install pytest pylint yapf
-RUN CC=clang-8 CXX=clang++-8 python3.8 -m pip install astpretty
-RUN CC=clang-8 CXX=clang++-8 python3.8 -m pip install pybind11
-RUN CC=clang-8 CXX=clang++-8 python3.8 -m pip install numpy
-RUN CC=clang-8 CXX=clang++-8 python3.8 -m pip install jupyter
+RUN python3.8 get-pip.py
+RUN python3.8 -m pip install pytest pylint yapf
+RUN python3.8 -m pip install astpretty
+RUN python3.8 -m pip install pybind11
+RUN python3.8 -m pip install numpy
+RUN python3.8 -m pip install jupyter
 
 # ## MPI
 # RUN apt install -y openmpi-bin openmpi-common libopenmpi-dev # libopenmpi-dbg
@@ -40,9 +47,9 @@ RUN git clone -b physl_2019 --single-branch https://github.com/ct-clmsn/tiramisu
 WORKDIR /home/stellar/git/tiramisu/3rdParty/isl/build
 WORKDIR /home/stellar/git/tiramisu/3rdParty/isl/
 
-RUN CC=clang-8 CXX=clang++-8 ./configure --prefix=$PWD/build/ --with-int=imath
-RUN CC=clang-8 CXX=clang++-8 make -j
-RUN CC=clang-8 CXX=clang++-8 make install
+RUN ./configure --prefix=$PWD/build/ --with-int=imath
+RUN make -j
+RUN make install
 
 
 RUN adduser --disabled-password --gecos '' stellar
@@ -50,11 +57,11 @@ RUN adduser stellar sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /home/stellar/git/tiramisu/
-RUN sed -i 's/llvm-config/llvm-config-8/g' CMakeLists.txt
-RUN sed -i 's/clang++/clang++-8/g' CMakeLists.txt
+RUN sed -i 's/llvm-config/llvm-config-${CLANG_VER}/g' CMakeLists.txt
+RUN sed -i 's/clang++/clang++-${CLANG_VER}/g' CMakeLists.txt
 
 WORKDIR /home/stellar/git/tiramisu/build
-RUN cmake -DUSE_HALIDE=OFF -DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8 ..
+RUN cmake -DUSE_HALIDE=OFF -DCMAKE_C_COMPILER=clang-${CLANG_VER} -DCMAKE_CXX_COMPILER=clang++-${CLANG_VER} ..
 RUN make -j tiramisu
 
 WORKDIR /home/stellar/git
@@ -62,7 +69,7 @@ RUN git clone -b backend --single-branch https://github.com/ct-clmsn/phyflow.git
 
 WORKDIR /home/stellar/git/phyflow/backend
 RUN ln -s /home/stellar/git/tiramisu/build/libtiramisu.so .
-RUN HOME=/home/stellar make CXX=clang++-8 ISL_ROOT_DIR=/home/stellar/git/tiramisu/3rdParty/isl/ ISL_LIB_DIR=/home/stellar/git/tiramisu/3rdParty/isl/build/lib
+RUN HOME=/home/stellar make ISL_ROOT_DIR=/home/stellar/git/tiramisu/3rdParty/isl/ ISL_LIB_DIR=/home/stellar/git/tiramisu/3rdParty/isl/build/lib
 
 WORKDIR /home/stellar/git
 RUN git clone https://github.com/STEllAR-GROUP/phyfleaux.git
