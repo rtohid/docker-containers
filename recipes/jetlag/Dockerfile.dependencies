@@ -172,7 +172,7 @@ RUN cmake -DCMAKE_BUILD_TYPE=Debug \
   -DPHYLANX_WITH_CXX17=on \
   -DPHYLANX_WITH_TOOLS=on \
   .. && \
-  make -j 2 install
+  make install
 
 # traveler
 WORKDIR /home/stellar/git/
